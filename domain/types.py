@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum, auto
 
 class Language(Enum):
@@ -12,3 +13,25 @@ class Polarity(Enum):
   POSITIVE = 'positive'
   NEUTRAL = 'neutral'
   NEGATIVE = 'negative'
+
+@dataclass
+class Text_Stats:
+  # Хранит статистику текста.
+  sentenceCount: int
+  wordCount: int
+  syllableCount: int
+  avgSentenceLength: float
+  avgWordSyllables: float
+
+@dataclass
+class Analysis_Result:
+  # Хранит результат анализа текста.
+  language: Language
+  fleschIndex: float
+  fleschKincaid: float
+  interpretation: str
+  polarity: Polarity
+  subjectivity: float
+  lexicalDiversity: float
+  rareWordDensity: float
+  stats: Text_Stats
