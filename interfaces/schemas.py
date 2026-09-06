@@ -7,7 +7,7 @@ class Analysis_Request(BaseModel):
                       description = "Текст для анализа")
 
   @validator('text')
-  def validate_text(cls, v):
+  def validateText(cls, v):
     """Проверка, что текст не пустой"""
     if not v.strip():
       raise ValueError('Текст не может быть пустым')
@@ -19,7 +19,7 @@ class Batch_Request(BaseModel):
                           description = 'Список текстов для анализа')
 
   @validator('texts')
-  def validate_texts(cls, v):
+  def validateTexts(cls, v):
     """Проверка, что все тексты не пустые"""
     for text in v:
       if not text.strip():

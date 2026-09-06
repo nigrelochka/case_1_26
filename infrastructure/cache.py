@@ -58,7 +58,7 @@ class Cache_Service:
       return None
 
     try:
-      key = self.getKey(text)
+      key = self._getKey(text)
       cached = self.redis.get(key)
 
       if cached:
@@ -84,7 +84,7 @@ class Cache_Service:
       return False
 
     try:
-      key = self.getKey(text)
+      key = self._getKey(text)
 
       # Превращаем результат в JSON-строку.
       value = json.dumps(
@@ -111,7 +111,7 @@ class Cache_Service:
 
     try:
       if text:
-        key = self.getKey(text)
+        key = self._getKey(text)
         self.redis.delete(key)
         logger.info(f'Удален из кэша: {key[:20]}...')
       else:
