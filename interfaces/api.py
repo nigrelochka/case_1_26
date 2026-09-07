@@ -11,7 +11,7 @@ from slowapi.util import get_remote_address
 
 from infrastructure.cache import Cache_Service
 from interfaces.schemas import Analysis_Request, Analysis_Response, Batch_Request, Batch_Response, Analysis_Result
-
+from application.services import analyzeTextService
 app = FastAPI(title='Text Analyzer')
 
 
@@ -122,24 +122,8 @@ def analyzeText(request: Request, analysisRequest: Analysis_Request):
       'processingTime': 0.0
     }
 
-  # Создаём временный результат анализа.
-  result = {
-    'language': 'ru',
-    'fleschIndex': 0.0,
-    'fleschKincaid': 0.0,
-    'interpretation': 'unknown',
-    'polarity': 'neutral',
-    'subjectivity': 0.0,
-    'lexicalDiversity': 0.0,
-    'rareWordDensity': 0.0,
-    'stats': {
-      'sentenceCount': 1,
-      'wordCount': len(analysisRequest.text.split()),
-      'syllableCount': 0,
-      'avgSentenceLength': 0.0,
-      'avgWordSyllables': 0.0
-    }
-  }
+  # Выполняем полный анализ текста.
+  result = analyzeTextService(analysisRequest.text)
 
   # Сохраняем результат в кэш.
   cacheService.setCachedResult(analysisRequest.text, Analysis_Result(**result))
@@ -170,24 +154,8 @@ def analyzeBatch(request: Request, batchRequest: Batch_Request):
       cachedResults.append(True)
       continue
 
-    # Создаём временный результат анализа.
-    result = {
-      'language': 'ru',
-      'fleschIndex': 0.0,
-      'fleschKincaid': 0.0,
-      'interpretation': 'unknown',
-      'polarity': 'neutral',
-      'subjectivity': 0.0,
-      'lexicalDiversity': 0.0,
-      'rareWordDensity': 0.0,
-      'stats': {
-        'sentenceCount': 1,
-        'wordCount': len(text.split()),
-        'syllableCount': 0,
-        'avgSentenceLength': 0.0,
-        'avgWordSyllables': 0.0
-      }
-    }
+    # Выполняем полный анализ текста.
+    result = analyzeTextService(text)
 
     # Сохраняем новый результат в кэш.
     cacheService.setCachedResult(text, Analysis_Result(**result))
