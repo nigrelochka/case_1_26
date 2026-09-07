@@ -6,7 +6,7 @@ from typing import Optional
 import redis
 
 from interfaces.schemas import Analysis_Result
-
+from config import REDIS_HOST, REDIS_PORT
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +16,8 @@ class Cache_Service:
 
   def __init__(
       self,
-      redisHost: str = 'localhost',
-      redisPort: int = 6379,
+      redisHost: str = REDIS_HOST,
+      redisPort: int = REDIS_PORT,
       redisDb: int = 0,
       ttl: int = 3600
   ):
