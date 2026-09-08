@@ -15,17 +15,33 @@ def test_health_endpoint():
 
 
 def test_analyze_valid_text():
-  """Проверка анализа валидного текста."""
+  """Проверка анализа валидного текста - проверка всех основных полей."""
   response = requests.post(
     f'{BASE_URL}/analyze',
-    json={'text': 'Hello world! This is a test.'}
+    json={'text': 'Hello world! This is a test for analysis.'}
   )
   assert response.status_code == 200
   data = response.json()
+
   assert 'status' in data
   assert data['status'] == 'success'
   assert 'result' in data
-  assert 'language' in data['result']
+
+  result = data['result']
+
+  assert 'language' in result
+  assert 'fleschIndex' in result
+  assert 'fleschKincaid' in result
+  assert 'interpretation' in result
+  assert 'polarity' in result
+  assert 'subjectivity' in result
+  assert 'lexicalDiversity' in result
+  assert 'rareWordDensity' in result
+  assert 'stats' in result
+
+  assert isinstance(result['language'], str)
+  assert isinstance(result['fleschIndex'], (int, float))
+  assert isinstance(result['interpretation'], str)
 
 
 def test_analyze_empty_text():

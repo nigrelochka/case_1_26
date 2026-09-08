@@ -75,3 +75,64 @@ def test_validate_text_empty():
   """Проверка валидации пустого текста - должна быть ошибка."""
   with pytest.raises(ValueError):
     validateText('')
+
+
+def test_lexical_diversity():
+  """Проверка лексического разнообразия."""
+  from infrastructure.metrics import lexicalDiversity
+
+  text = 'cat cat dog dog dog'
+  diversity = lexicalDiversity(text)
+  assert diversity == 0.4
+
+  text = 'one two three four five'
+  diversity = lexicalDiversity(text)
+  assert diversity == 1.0
+
+  text = ''
+  diversity = lexicalDiversity(text)
+  assert diversity == 0.0
+
+
+def test_rare_word_density():
+  """Проверка плотности редких слов."""
+  from infrastructure.metrics import rareWordDensity
+  from domain.types import Language
+
+  text = 'test word sample'
+  density = rareWordDensity(text, Language.EN, threshold=5.0)
+  assert 0.0 <= density <= 1.0
+
+  text = ''
+  density = rareWordDensity(text, Language.EN)
+  assert density == 0.0
+
+
+def test_analyze_sentiment_positive():
+  """Проверка анализа тональности на положительном тексте."""
+  from infrastructure.sentiment import analyzeSentiment
+  from domain.types import Language
+
+  polarity, subjectivity = analyzeSentiment('I love this! It is amazing!', Language.EN)
+  assert polarity > 0.3
+  assert 0.0 <= subjectivity <= 1.0
+
+
+def test_analyze_sentiment_negative():
+  """Проверка анализа тональности на отрицательном тексте."""
+  from infrastructure.sentiment import analyzeSentiment
+  from domain.types import Language
+
+  polarity, subjectivity = analyzeSentiment('This is terrible! I hate it.', Language.EN)
+  assert polarity < -0.3
+  assert 0.0 <= subjectivity <= 1.0
+
+
+def test_analyze_sentiment_neutral():
+  """Проверка анализа тональности на нейтральном тексте."""
+  from infrastructure.sentiment import analyzeSentiment
+  from domain.types import Language
+
+  polarity, subjectivity = analyzeSentiment('This is a book.', Language.EN)
+  assert -0.1 <= polarity <= 0.1
+  assert 0.0 <= subjectivity <= 1.0
