@@ -1,6 +1,9 @@
-from langdetect import detect
+from langdetect import detect, DetectorFactory
 
 from domain.types import Language
+
+
+DetectorFactory.seed = 0
 
 
 def detectLanguage(text: str) -> Language:
@@ -18,4 +21,6 @@ def detectLanguage(text: str) -> Language:
   if detectedLanguage == 'fr':
     return Language.FR
 
-  raise ValueError('Unsupported language')
+  raise ValueError(
+    f'Unsupported language: {detectedLanguage}'
+  )

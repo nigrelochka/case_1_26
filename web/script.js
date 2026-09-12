@@ -1,24 +1,68 @@
 const API_URL = 'http://127.0.0.1:8000';
 
-const textInput = document.getElementById('textInput');
+const textInputs = document.getElementById('textInputs');
+const addTextButton = document.getElementById('addTextButton');
 const analyzeButton = document.getElementById('analyzeButton');
 const result = document.getElementById('result');
 
+const languageNames = {
+  en: 'Английский',
+  ru: 'Русский',
+  de: 'Немецкий',
+  fr: 'Французский'
+};
+
+addTextButton.addEventListener('click', () => {
+  // Создаём новое поле для текста.
+  const newTextInput = document.createElement('textarea');
+
+  newTextInput.className = 'textInput';
+  newTextInput.rows = 10;
+  newTextInput.cols = 50;
+  newTextInput.placeholder = 'Введите текст...';
+
+  textInputs.appendChild(document.createElement('br'));
+  textInputs.appendChild(newTextInput);
+});
+
 analyzeButton.addEventListener('click', async () => {
-  // Получаем текст из поля ввода.
-  const text = textInput.value;
+  // Получаем все поля с текстами.
+  const inputs = document.querySelectorAll('.textInput');
+  const texts = [];
+
+  inputs.forEach((input) => {
+    if (input.value.trim()) {
+      texts.push(input.value);
+    }
+  });
 
   try {
-    // Отправляем текст на сервер.
-    const response = await fetch(`${API_URL}/analyze`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        text: text
-      })
-    });
+    // Отправляем запрос на сервер.
+    let response;
+
+    if (texts.length === 1) {
+      // Отправляем один текст.
+      response = await fetch(`${API_URL}/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: texts[0]
+        })
+      });
+    } else {
+      // Отправляем несколько текстов.
+      response = await fetch(`${API_URL}/analyze-batch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          texts: texts
+        })
+      });
+    }
 
     // Получаем JSON-ответ от сервера.
     const data = await response.json();
@@ -26,36 +70,70 @@ analyzeButton.addEventListener('click', async () => {
     // Проверяем, вернул ли сервер ошибку.
     if (!response.ok) {
       result.innerHTML = `
-        <p>Ошибка ${response.status}: ${data.message || 'Неизвестная ошибка'}</p>
+        <p>Ошибка ${response.status}: ${data.message || data.detail || 'Неизвестная ошибка'}</p>
       `;
       return;
     }
 
-  const language = languageNames[data.result.language] || data.result.language;
+    // Очищаем предыдущие результаты.
+    result.innerHTML = '';
 
-  const cachedText = data.cached ? 'Да' : 'Нет';
+    if (texts.length === 1) {
+      // Показываем результат одного текста.
+      showResult(data.result, data.cached, result, data.processingTime);
+    } else {
+      // Показываем результаты всех текстов.
+      data.results.forEach((analysisResult, index) => {
+        const resultBlock = document.createElement('div');
 
-  result.innerHTML = `
-    <p>Язык: ${language}</p>
-    <p>Индекс Флеша: ${data.result.fleschIndex}</p>
-    <p>Индекс Флеша-Кинкейда: ${data.result.fleschKincaid}</p>
-    <p>Сложность: ${data.result.interpretation}</p>
-    <p>Тональность: ${data.result.polarity}</p>
-    <p>Субъективность: ${data.result.subjectivity}</p>
-    <p>Лексическое разнообразие: ${data.result.lexicalDiversity}</p>
-    <p>Плотность редких слов: ${data.result.rareWordDensity}</p>
+        resultBlock.innerHTML = `<h3>Текст ${index + 1}</h3>`;
 
-    <h3>Статистика</h3>
+        result.appendChild(resultBlock);
 
-    <p>Количество предложений: ${data.result.stats.sentenceCount}</p>
-    <p>Количество слов: ${data.result.stats.wordCount}</p>
-    <p>Количество слогов: ${data.result.stats.syllableCount}</p>
-    <p>Средняя длина предложения: ${data.result.stats.avgSentenceLength}</p>
-    <p>Среднее количество слогов в слове: ${data.result.stats.avgWordSyllables}</p>
-
-    <h3>Информация о запросе</h3>
-
-    <p>Результат из кэша: ${cachedText}</p>
-    <p>Время обработки: ${data.processingTime.toFixed(2)} сек.</p>
-  `;
+        showResult(
+          analysisResult,
+          data.cached[index],
+          resultBlock,
+          data.totalTime
+        );
+      });
+    }
+  } catch (error) {
+    // Показываем ошибку соединения с API.
+    result.innerHTML = `
+      <p>Ошибка соединения с API: ${error.message}</p>
+    `;
+  }
 });
+
+function showResult(analysisResult, cached, container = result, processingTime) {
+  // Показываем данные анализа текста.
+  const language = languageNames[analysisResult.language] || analysisResult.language;
+  const cachedText = cached ? 'Да' : 'Нет';
+
+  const resultBlock = document.createElement('div');
+
+  resultBlock.innerHTML = `
+    <p>Язык: ${language}</p>
+    <p>Индекс Флеша: ${analysisResult.fleschIndex}</p>
+    <p>Индекс Флеша-Кинкейда: ${analysisResult.fleschKincaid}</p>
+    <p>Сложность: ${analysisResult.interpretation}</p>
+    <p>Тональность: ${analysisResult.polarity}</p>
+    <p>Субъективность: ${analysisResult.subjectivity}</p>
+    <p>Лексическое разнообразие: ${analysisResult.lexicalDiversity}</p>
+    <p>Плотность редких слов: ${analysisResult.rareWordDensity}</p>
+
+    <h4>Статистика</h4>
+    <p>Количество предложений: ${analysisResult.stats.sentenceCount}</p>
+    <p>Количество слов: ${analysisResult.stats.wordCount}</p>
+    <p>Количество слогов: ${analysisResult.stats.syllableCount}</p>
+    <p>Средняя длина предложения: ${analysisResult.stats.avgSentenceLength}</p>
+    <p>Среднее количество слогов в слове: ${analysisResult.stats.avgWordSyllables}</p>
+
+    <h4>Информация о запросе</h4>
+    <p>Результат из кэша: ${cachedText}</p>
+    <p>Время обработки: ${processingTime.toFixed(2)} сек.</p>
+  `;
+
+  container.appendChild(resultBlock);
+}
