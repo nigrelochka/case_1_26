@@ -17,11 +17,15 @@ def translateToEnglish(text: str, language: Language) -> str:
 
 
 def analyzeSentiment(text: str, language: Language) -> tuple[float, float]:
-  englishText = translateToEnglish(text, language)
+  try:
+    englishText = translateToEnglish(text, language)
 
-  blob = TextBlob(englishText)
+    blob = TextBlob(englishText)
 
-  polarity = blob.sentiment.polarity
-  subjectivity = blob.sentiment.subjectivity
+    polarity = blob.sentiment.polarity
+    subjectivity = blob.sentiment.subjectivity
 
-  return polarity, subjectivity
+    return polarity, subjectivity
+
+  except Exception:
+    return 0.0, 0.0
