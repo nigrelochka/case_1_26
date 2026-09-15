@@ -136,3 +136,140 @@ def test_analyze_sentiment_neutral():
   polarity, subjectivity = analyzeSentiment('This is a book.', Language.EN)
   assert -0.1 <= polarity <= 0.1
   assert 0.0 <= subjectivity <= 1.0
+
+
+def test_count_syllables_de():
+  """Проверка подсчета слогов для немецкого языка."""
+  from infrastructure.syllable_counters import countSyllablesDe
+
+  assert countSyllablesDe('hallo') == 2
+  assert countSyllablesDe('welt') == 1
+  assert countSyllablesDe('') == 0
+
+
+def test_count_syllables_fr():
+  """Проверка подсчета слогов для французского языка."""
+  from infrastructure.syllable_counters import countSyllablesFr
+
+  assert countSyllablesFr('bonjour') == 2
+  assert countSyllablesFr('monde') == 1
+  assert countSyllablesFr('') == 0
+
+
+def test_get_syllable_counter_all_languages():
+  """Проверка получения счетчика для всех языков."""
+  from infrastructure.syllable_counters import (
+    getSyllableCounter, countSyllablesRu, countSyllablesEn,
+    countSyllablesDe, countSyllablesFr
+  )
+  from domain.types import Language
+
+  assert getSyllableCounter(Language.RU) == countSyllablesRu
+  assert getSyllableCounter(Language.EN) == countSyllablesEn
+  assert getSyllableCounter(Language.DE) == countSyllablesDe
+  assert getSyllableCounter(Language.FR) == countSyllablesFr
+
+
+def test_flesch_index_german():
+  """Проверка расчета индекса Флеша для немецкого."""
+  from infrastructure.flesch_calculators import fleschIndex
+  from domain.types import Language, Text_Stats
+
+  stats = Text_Stats(
+    sentenceCount=2,
+    wordCount=10,
+    syllableCount=12,
+    avgSentenceLength=5.0,
+    avgWordSyllables=1.2
+  )
+  score = fleschIndex(stats, Language.DE)
+  assert isinstance(score, (int, float))
+
+
+def test_flesch_index_french():
+  """Проверка расчета индекса Флеша для французского."""
+  from infrastructure.flesch_calculators import fleschIndex
+  from domain.types import Language, Text_Stats
+
+  stats = Text_Stats(
+    sentenceCount=2,
+    wordCount=10,
+    syllableCount=12,
+    avgSentenceLength=5.0,
+    avgWordSyllables=1.2
+  )
+  score = fleschIndex(stats, Language.FR)
+  assert isinstance(score, (int, float))
+
+
+def test_flesch_kincaid():
+  """Проверка индекса Флеша-Кинкейда."""
+  from infrastructure.flesch_calculators import fleschKincaid
+  from domain.types import Text_Stats
+
+  stats = Text_Stats(
+    sentenceCount=2,
+    wordCount=10,
+    syllableCount=12,
+    avgSentenceLength=5.0,
+    avgWordSyllables=1.2
+  )
+  grade = fleschKincaid(stats)
+  assert isinstance(grade, (int, float))
+
+
+def test_interpret_flesch_all_levels():
+  """Проверка всех уровней интерпретации Флеша."""
+  from infrastructure.flesch_calculators import interpretFlesch
+
+  assert interpretFlesch(95) == 'Очень легко'
+  assert interpretFlesch(85) == 'Легко'
+  assert interpretFlesch(75) == 'Довольно легко'
+  assert interpretFlesch(65) == 'Средняя сложность'
+  assert interpretFlesch(55) == 'Довольно трудно'
+  assert interpretFlesch(40) == 'Трудно'
+  assert interpretFlesch(20) == 'Очень трудно'
+
+
+def test_detect_language_german():
+  """Проверка определения немецкого языка."""
+  from infrastructure.language_detector import detectLanguage
+  from domain.types import Language
+
+  lang = detectLanguage('Das ist ein deutscher Text mit vielen Wörtern')
+  assert lang == Language.DE
+
+
+def test_detect_language_french():
+  """Проверка определения французского языка."""
+  from infrastructure.language_detector import detectLanguage
+  from domain.types import Language
+
+  lang = detectLanguage('Ceci est un texte français avec beaucoup de mots')
+  assert lang == Language.FR
+
+
+def test_validate_text_not_string():
+  """Проверка валидации, если передан не текст."""
+  from infrastructure.validation import validateText
+  import pytest
+
+  with pytest.raises(TypeError):
+    validateText(123)
+
+
+def test_validate_text_only_digits():
+  """Проверка валидации текста только из цифр."""
+  from infrastructure.validation import validateText
+  import pytest
+
+  with pytest.raises(ValueError):
+    validateText('12345')
+
+
+def test_validate_text_strips_whitespace():
+  """Проверка, что валидация убирает пробелы."""
+  from infrastructure.validation import validateText
+
+  result = validateText('  hello  ')
+  assert result == 'hello'
