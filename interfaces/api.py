@@ -12,8 +12,9 @@ from slowapi.util import get_remote_address
 from infrastructure.cache import Cache_Service
 from interfaces.schemas import Analysis_Request, Analysis_Response, Batch_Request, Batch_Response, Analysis_Result
 from application.services import analyzeTextService
-app = FastAPI(title='Text Analyzer')
 
+
+app = FastAPI(title='Text Analyzer')
 
 # Подключение ограничения количества запросов
 limiter = Limiter(key_func = get_remote_address)

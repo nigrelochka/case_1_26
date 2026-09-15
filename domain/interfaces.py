@@ -7,7 +7,10 @@ class Syllable_Counter(Protocol):
     ...
 
 class Sentiment_Analyzer(Protocol):
-  def __call__(self, text: str) -> tuple[Polarity, float]:
+  def __call__(
+    self, text: str,
+    language: Language
+  ) -> tuple[float, float]:
     # Возвращает тональность и субъективность текста.
     ...
 
