@@ -21,3 +21,4 @@ deep-translator==1.11.4
 wordfreq==3.1.1
 slowapi
 requests
+locust
